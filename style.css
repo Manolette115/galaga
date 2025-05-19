@@ -57,10 +57,10 @@ canvas {
     justify-content: center;
     align-items: center;
     z-index: 10;
-    animation: slideUpDown 1s forwards;
+    transition: transform 1s ease-in-out, opacity 1s ease-in-out;
 }
 
-@keyframes slideUpDown {
-    0% { transform: translateY(0); opacity: 1; }
-    100% { transform: translateY(-100%) scaleY(0); opacity: 0; }
+.overlay.hide {
+    transform: translateY(-100%) scaleY(0);
+    opacity: 0;
 }
