@@ -4,7 +4,69 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Galaga Xalapa 2.0</title>
-  <link href="style.css" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: white;
+      font-family: 'Press Start 2P', monospace;
+    }
+
+    canvas {
+      display: block;
+      margin: auto;
+      background: #000;
+      border: 2px solid white;
+    }
+
+    .controls {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .controls button {
+      font-size: 2rem;
+      margin: 5px;
+      padding: 10px;
+      border: none;
+      background: #222;
+      color: white;
+      border-radius: 10px;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      font-family: 'Press Start 2P', monospace;
+    }
+
+    .overlay.hide {
+      animation: slideOut 1s forwards;
+    }
+
+    @keyframes slideOut {
+      0% { transform: scaleY(1); opacity: 1; }
+      100% { transform: scaleY(0); opacity: 0; }
+    }
+
+    .score {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 0.75rem;
+      color: white;
+      font-family: 'Press Start 2P', monospace;
+    }
+  </style>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -29,6 +91,146 @@
 
   <audio id="shootSound" src="shoot.wav"></audio>
   <audio id="explodeSound" src="explode.wav"></audio>
-  <script src="script.js"></script>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreDisplay = document.getElementById("scoreDisplay");
+    const startScreen = document.getElementById("startScreen");
+    const winScreen = document.getElementById("winScreen");
+    const shootSound = document.getElementById("shootSound");
+    const explodeSound = document.getElementById("explodeSound");
+
+    let ship = { x: canvas.width / 2 - 15, y: canvas.height - 40, width: 30, height: 30, speed: 5 };
+    let bullets = [];
+    let enemies = [];
+    let movingLeft = false;
+    let movingRight = false;
+    let canFire = true;
+    let score = 0;
+    let playing = false;
+    let enemyDirection = 1;
+    let enemyMoveCounter = 0;
+
+    function createEnemies() {
+      enemies = [];
+      for (let i = 0; i < 5; i++) {
+        for (let j = 0; j < 6; j++) {
+          enemies.push({
+            x: 30 + j * 45,
+            y: 30 + i * 35,
+            width: 30,
+            height: 30,
+            dying: false
+          });
+        }
+      }
+    }
+
+    function update() {
+      if (!playing) return;
+
+      if (movingLeft && ship.x > 0) ship.x -= ship.speed;
+      if (movingRight && ship.x + ship.width < canvas.width) ship.x += ship.speed;
+
+      bullets.forEach((b, i) => {
+        b.y -= 7;
+        if (b.y < 0) bullets.splice(i, 1);
+      });
+
+      bullets.forEach((b, bi) => {
+        enemies.forEach((e, ei) => {
+          if (!e.dying && b.x < e.x + e.width && b.x + b.width > e.x && b.y < e.y + e.height && b.y + b.height > e.y) {
+            e.dying = true;
+            let explode = explodeSound.cloneNode();
+            explode.play();
+            setTimeout(() => enemies.splice(ei, 1), 200);
+            bullets.splice(bi, 1);
+            score += 100;
+            scoreDisplay.textContent = score;
+          }
+        });
+      });
+
+      // Movimiento uniforme de enemigos estilo Galaga
+      enemyMoveCounter++;
+      if (enemyMoveCounter > 30) {
+        let shift = 10 * enemyDirection;
+        let changeDir = enemies.some(e => e.x + shift < 0 || e.x + shift + e.width > canvas.width);
+        if (changeDir) {
+          enemyDirection *= -1;
+          enemies.forEach(e => e.y += 10);
+        } else {
+          enemies.forEach(e => e.x += shift);
+        }
+        enemyMoveCounter = 0;
+      }
+
+      if (enemies.length === 0) {
+        playing = false;
+        winScreen.style.display = "flex";
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "white";
+      ctx.fillRect(ship.x, ship.y, ship.width, ship.height);
+
+      bullets.forEach(b => {
+        ctx.fillStyle = "red";
+        ctx.fillRect(b.x, b.y, b.width, b.height);
+      });
+
+      enemies.forEach(e => {
+        ctx.fillStyle = e.dying ? "orange" : "lime";
+        ctx.fillRect(e.x, e.y, e.width, e.height);
+      });
+    }
+
+    function fireBullet() {
+      if (!canFire) return;
+      bullets.push({ x: ship.x + ship.width / 2 - 2, y: ship.y, width: 4, height: 10 });
+      let sound = shootSound.cloneNode();
+      sound.play();
+      canFire = false;
+      setTimeout(() => canFire = true, 200);
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    document.getElementById("leftBtn").addEventListener("touchstart", e => { e.preventDefault(); movingLeft = true; });
+    document.getElementById("leftBtn").addEventListener("touchend", e => { e.preventDefault(); movingLeft = false; });
+    document.getElementById("rightBtn").addEventListener("touchstart", e => { e.preventDefault(); movingRight = true; });
+    document.getElementById("rightBtn").addEventListener("touchend", e => { e.preventDefault(); movingRight = false; });
+    document.getElementById("fireBtn").addEventListener("touchstart", e => { e.preventDefault(); fireBullet(); });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") movingLeft = true;
+      if (e.key === "ArrowRight") movingRight = true;
+      if (e.key === " ") fireBullet();
+    });
+    document.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowLeft") movingLeft = false;
+      if (e.key === "ArrowRight") movingRight = false;
+    });
+
+    // Iniciar con toque
+    startScreen.addEventListener("click", () => {
+      startScreen.classList.add("hide");
+      setTimeout(() => {
+        startScreen.style.display = "none";
+        createEnemies();
+        playing = true;
+      }, 1000);
+    });
+
+    gameLoop();
+  </script>
 </body>
 </html>
