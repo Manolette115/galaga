@@ -1,29 +1,34 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>Galaga Móvil</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Galaga Móvil</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div id="startScreen" class="overlay">
-        <h1>Xalapa 2.0</h1>
-        <p>Toca la pantalla para comenzar</p>
-    </div>
-    <div id="winScreen" class="overlay" style="display: none;">
-        <h1>¡Felicidades!</h1>
-        <p>Has completado el nivel.</p>
-        <button onclick="location.reload()">Volver a jugar</button>
-    </div>
-    <canvas id="gameCanvas" width="360" height="600"></canvas>
-    <div class="score">PUNTOS: <span id="scoreDisplay">0</span></div>
-    <div class="controls">
-        <button id="leftBtn">◀</button>
-        <button id="fireBtn">⏺</button>
-        <button id="rightBtn">▶</button>
-    </div>
-    <script src="script.js"></script>
+  <div id="startScreen" class="overlay">
+    <h1>Xalapa 2.0</h1>
+    <p class="blinking">Toca la pantalla para comenzar</p>
+  </div>
+
+  <div id="winScreen" class="overlay" style="display: none;">
+    <h1>¡Felicidades!</h1>
+    <p>Has completado el nivel.</p>
+    <canvas id="confettiCanvas"></canvas>
+    <button onclick="location.reload()">Volver a jugar</button>
+  </div>
+
+  <div class="score-box">PUNTOS:<br><span id="scoreDisplay">0</span></div>
+  <canvas id="gameCanvas" width="360" height="600"></canvas>
+
+  <div class="controls">
+    <button id="leftBtn">◀</button>
+    <button id="fireBtn">⏺</button>
+    <button id="rightBtn">▶</button>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
