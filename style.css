@@ -1,3 +1,4 @@
+
 body {
   margin: 0;
   padding: 0;
@@ -13,10 +14,11 @@ body {
 }
 
 canvas {
-  border: 2px solid white;
+  border: 4px solid lime;
   max-width: 100%;
   height: auto;
   margin-top: 10px;
+  box-shadow: 0 0 10px lime;
 }
 
 .controls {
@@ -31,11 +33,12 @@ canvas {
   color: lime;
   border: 2px solid lime;
   font-family: 'Press Start 2P', cursive;
-  font-size: 20px;
-  border-radius: 6px;
+  font-size: 14px;
+  border-radius: 4px;
   padding: 10px;
   width: 70px;
   box-shadow: 0 0 5px lime;
+  text-align: center;
 }
 
 .score-box {
