@@ -52,7 +52,6 @@ function update() {
         });
     });
 
-    // Mover enemigos hacia abajo lentamente
     enemyMoveDownTimer++;
     if (enemyMoveDownTimer > 30) {
         enemies.forEach(e => e.y += 2);
@@ -87,7 +86,6 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-// Controles móviles
 document.getElementById("leftBtn").addEventListener("touchstart", (e) => {
     e.preventDefault();
     movingLeft = true;
@@ -113,7 +111,6 @@ document.getElementById("fireBtn").addEventListener("touchend", (e) => {
     firing = false;
 });
 
-// Teclado
 document.addEventListener("keydown", (e) => {
     if (e.key === "ArrowLeft") movingLeft = true;
     if (e.key === "ArrowRight") movingRight = true;
@@ -125,11 +122,13 @@ document.addEventListener("keyup", (e) => {
     if (e.key === " ") firing = false;
 });
 
-// Tocar pantalla para iniciar
 startScreen.addEventListener("click", () => {
-    startScreen.style.display = "none";
-    createEnemies();
-    playing = true;
+    startScreen.classList.add("hide");
+    setTimeout(() => {
+        startScreen.style.display = "none";
+        createEnemies();
+        playing = true;
+    }, 1000);
 });
 
 gameLoop();
