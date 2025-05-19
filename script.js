@@ -58,10 +58,10 @@ function update() {
         enemyMoveDownTimer = 0;
     }
 
-    if (enemies.length === 0) {
-        playing = false;
-        winScreen.style.display = "flex";
-    }
+   if (enemies.length === 0) {
+    playing = false;
+    winScreen.style.display = "flex";
+    launchConfetti();
 }
 
 function draw() {
@@ -130,5 +130,39 @@ startScreen.addEventListener("click", () => {
         playing = true;
     }, 1000);
 });
+function launchConfetti() {
+    const confettiCanvas = document.getElementById("confettiCanvas");
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+    const ctx = confettiCanvas.getContext("2d");
+
+    let confetti = Array.from({ length: 100 }, () => ({
+        x: Math.random() * confettiCanvas.width,
+        y: Math.random() * confettiCanvas.height - confettiCanvas.height,
+        r: Math.random() * 4 + 2,
+        dx: Math.random() * 2 - 1,
+        dy: Math.random() * 3 + 2,
+        color: `hsl(${Math.random() * 360}, 100%, 50%)`
+    }));
+
+    function drawConfetti() {
+        ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        for (let c of confetti) {
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+            ctx.fillStyle = c.color;
+            ctx.fill();
+            c.x += c.dx;
+            c.y += c.dy;
+            if (c.y > confettiCanvas.height) {
+                c.y = 0;
+                c.x = Math.random() * confettiCanvas.width;
+            }
+        }
+        requestAnimationFrame(drawConfetti);
+    }
+
+    drawConfetti();
+}
 
 gameLoop();
