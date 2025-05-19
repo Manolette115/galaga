@@ -63,4 +63,28 @@ canvas {
   background: black;
   color: white;
   display: flex;
-  flex-directi
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  font-family: 'Press Start 2P', cursive;
+  transition: transform 1s ease-in-out, opacity 1s ease-in-out;
+}
+
+.overlay.hide {
+  transform: translateY(-100%) scaleY(0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.blinking {
+  animation: blink 1s steps(2, start) infinite;
+  text-align: center;
+  margin-top: 20px;
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
