@@ -10,28 +10,39 @@
       background: black;
       color: white;
       font-family: 'Press Start 2P', monospace;
+      overflow: hidden;
     }
 
     canvas {
       display: block;
-      margin: auto;
+      margin: 0 auto;
       background: #000;
-      border: 2px solid white;
     }
 
     .controls {
+      position: fixed;
+      bottom: 10px;
+      width: 100%;
       text-align: center;
-      margin-top: 10px;
+      z-index: 5;
     }
 
     .controls button {
-      font-size: 2rem;
-      margin: 5px;
-      padding: 10px;
-      border: none;
-      background: #222;
-      color: white;
+      font-size: 24px;
+      margin: 0 10px;
+      padding: 10px 20px;
+      background: #333;
+      border: 2px solid #fff;
+      color: #fff;
       border-radius: 10px;
+    }
+
+    .score {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 0.75rem;
+      font-family: 'Press Start 2P', monospace;
     }
 
     .overlay {
@@ -50,26 +61,13 @@
     }
 
     .overlay.hide {
-      animation: slideOut 1s forwards;
-    }
-
-    @keyframes slideOut {
-      0% { transform: scaleY(1); opacity: 1; }
-      100% { transform: scaleY(0); opacity: 0; }
-    }
-
-    .score {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      font-size: 0.75rem;
-      color: white;
-      font-family: 'Press Start 2P', monospace;
+      display: none;
     }
   </style>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
+
   <div class="overlay" id="startScreen">
     <h1>XALAPA 2.0</h1>
     <p>TOCA PARA EMPEZAR</p>
@@ -84,9 +82,9 @@
   <canvas id="gameCanvas" width="320" height="480"></canvas>
 
   <div class="controls">
-    <button id="leftBtn">⬅️</button>
-    <button id="fireBtn">🔥</button>
-    <button id="rightBtn">➡️</button>
+    <button id="leftBtn">◀</button>
+    <button id="fireBtn">⨉</button>
+    <button id="rightBtn">▶</button>
   </div>
 
   <audio id="shootSound" src="shoot.wav"></audio>
@@ -101,7 +99,7 @@
     const shootSound = document.getElementById("shootSound");
     const explodeSound = document.getElementById("explodeSound");
 
-    let ship = { x: canvas.width / 2 - 15, y: canvas.height - 40, width: 30, height: 30, speed: 5 };
+    let ship = { x: canvas.width / 2 - 15, y: canvas.height - 50, width: 30, height: 30, speed: 5 };
     let bullets = [];
     let enemies = [];
     let movingLeft = false;
@@ -109,8 +107,6 @@
     let canFire = true;
     let score = 0;
     let playing = false;
-    let enemyDirection = 1;
-    let enemyMoveCounter = 0;
 
     function createEnemies() {
       enemies = [];
@@ -151,20 +147,6 @@
           }
         });
       });
-
-      // Movimiento uniforme de enemigos estilo Galaga
-      enemyMoveCounter++;
-      if (enemyMoveCounter > 30) {
-        let shift = 10 * enemyDirection;
-        let changeDir = enemies.some(e => e.x + shift < 0 || e.x + shift + e.width > canvas.width);
-        if (changeDir) {
-          enemyDirection *= -1;
-          enemies.forEach(e => e.y += 10);
-        } else {
-          enemies.forEach(e => e.x += shift);
-        }
-        enemyMoveCounter = 0;
-      }
 
       if (enemies.length === 0) {
         playing = false;
@@ -220,14 +202,11 @@
       if (e.key === "ArrowRight") movingRight = false;
     });
 
-    // Iniciar con toque
+    // Empezar juego al tocar la pantalla
     startScreen.addEventListener("click", () => {
       startScreen.classList.add("hide");
-      setTimeout(() => {
-        startScreen.style.display = "none";
-        createEnemies();
-        playing = true;
-      }, 1000);
+      createEnemies();
+      playing = true;
     });
 
     gameLoop();
