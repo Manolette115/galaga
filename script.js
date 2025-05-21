@@ -123,7 +123,7 @@ function update() {
   enemies = enemies.filter(e => !e.remove);
 
   enemyMoveTimer++;
-  let speedFactor = Math.max(5, 35 - enemies.length);
+  let speedFactor = Math.max(5, 5 + enemies.length);
   if (enemyMoveTimer >= speedFactor) {
     let shift = 10 * enemyDirection;
     let edgeHit = enemies.some(e => e.x + shift < 0 || e.x + shift + e.width > canvas.width);
