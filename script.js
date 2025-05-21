@@ -24,7 +24,6 @@ let playing = false;
 let enemyMoveTimer = 0;
 let enemyDirection = 1;
 
-// Asegurar que las imágenes están cargadas antes de permitir iniciar
 let imagesLoaded = 0;
 enemyImage.onload = checkImagesLoaded;
 enemyHitImage.onload = checkImagesLoaded;
@@ -32,7 +31,6 @@ enemyHitImage.onload = checkImagesLoaded;
 function checkImagesLoaded() {
   imagesLoaded++;
   if (imagesLoaded === 2) {
-    // Habilitar inicio al tocar la pantalla
     startScreen.addEventListener("click", () => {
       startScreen.classList.add("hide");
       createEnemies();
@@ -51,7 +49,8 @@ function createEnemies() {
         width: 30,
         height: 30,
         img: enemyImage,
-        dying: false
+        dying: false,
+        flashState: 0
       });
     }
   }
@@ -84,7 +83,18 @@ function update() {
         e.img = enemyHitImage;
         let explode = explodeSound.cloneNode();
         explode.play();
-        setTimeout(() => enemies.splice(ei, 1), 150);
+
+        // Parpadeo animado
+        let flashCount = 0;
+        const flashInterval = setInterval(() => {
+          e.flashState = (e.flashState === 0) ? 1 : 0;
+          flashCount++;
+          if (flashCount >= 5) {
+            clearInterval(flashInterval);
+            enemies.splice(ei, 1);
+          }
+        }, 100);
+
         bullets.splice(bi, 1);
         score += 100;
         scoreDisplay.textContent = score;
@@ -92,9 +102,9 @@ function update() {
     });
   });
 
-  // Movimiento zigzag con dificultad progresiva
+  // Movimiento en zigzag con dificultad progresiva
   enemyMoveTimer++;
-  let speedFactor = Math.max(5, 35 - enemies.length); // menor número = más rápido
+  let speedFactor = Math.max(5, 35 - enemies.length);
   if (enemyMoveTimer >= speedFactor) {
     let shift = 10 * enemyDirection;
     let edgeHit = enemies.some(e => e.x + shift < 0 || e.x + shift + e.width > canvas.width);
@@ -125,7 +135,13 @@ function draw() {
   });
 
   enemies.forEach(e => {
+    if (e.flashState === 1) {
+      ctx.globalAlpha = 0.5;
+    } else {
+      ctx.globalAlpha = 1.0;
+    }
     ctx.drawImage(e.img, e.x, e.y, e.width, e.height);
+    ctx.globalAlpha = 1.0;
   });
 }
 
