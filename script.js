@@ -24,6 +24,23 @@ let playing = false;
 let enemyMoveTimer = 0;
 let enemyDirection = 1;
 
+// Asegurar que las imágenes están cargadas antes de permitir iniciar
+let imagesLoaded = 0;
+enemyImage.onload = checkImagesLoaded;
+enemyHitImage.onload = checkImagesLoaded;
+
+function checkImagesLoaded() {
+  imagesLoaded++;
+  if (imagesLoaded === 2) {
+    // Habilitar inicio al tocar la pantalla
+    startScreen.addEventListener("click", () => {
+      startScreen.classList.add("hide");
+      createEnemies();
+      playing = true;
+    });
+  }
+}
+
 function createEnemies() {
   enemies = [];
   for (let i = 0; i < 5; i++) {
@@ -75,9 +92,9 @@ function update() {
     });
   });
 
-  // Zigzag movement + progressive difficulty
+  // Movimiento zigzag con dificultad progresiva
   enemyMoveTimer++;
-  let speedFactor = Math.max(5, 35 - enemies.length); // difficulty increases as enemies decrease
+  let speedFactor = Math.max(5, 35 - enemies.length); // menor número = más rápido
   if (enemyMoveTimer >= speedFactor) {
     let shift = 10 * enemyDirection;
     let edgeHit = enemies.some(e => e.x + shift < 0 || e.x + shift + e.width > canvas.width);
@@ -153,6 +170,7 @@ function launchConfetti() {
   drawConfetti();
 }
 
+// Controles táctiles
 document.getElementById("leftBtn").addEventListener("touchstart", e => { e.preventDefault(); movingLeft = true; });
 document.getElementById("leftBtn").addEventListener("touchend", e => { e.preventDefault(); movingLeft = false; });
 document.getElementById("rightBtn").addEventListener("touchstart", e => { e.preventDefault(); movingRight = true; });
@@ -160,6 +178,7 @@ document.getElementById("rightBtn").addEventListener("touchend", e => { e.preven
 document.getElementById("fireBtn").addEventListener("touchstart", e => { e.preventDefault(); firing = true; });
 document.getElementById("fireBtn").addEventListener("touchend", e => { e.preventDefault(); firing = false; });
 
+// Controles de teclado
 document.addEventListener("keydown", e => {
   if (e.key === "ArrowLeft") movingLeft = true;
   if (e.key === "ArrowRight") movingRight = true;
@@ -169,12 +188,6 @@ document.addEventListener("keyup", e => {
   if (e.key === "ArrowLeft") movingLeft = false;
   if (e.key === "ArrowRight") movingRight = false;
   if (e.key === " ") firing = false;
-});
-
-startScreen.addEventListener("click", () => {
-  startScreen.classList.add("hide");
-  createEnemies();
-  playing = true;
 });
 
 gameLoop();
