@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Galaga Móvil</title>
+  <title>Galaga Xalapa</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="startScreen" class="overlay">
-    <h1>Xalapa 2.0</h1>
+    <img src="logo.png" alt="Logo" class="logo-img" />
+    <p class="subtext">Abastece todas las casas de <span class="blue">agua</span></p>
     <p class="blinking">Toca la pantalla para comenzar</p>
   </div>
 
@@ -20,12 +21,16 @@
     <button onclick="location.reload()">Volver a jugar</button>
   </div>
 
-  <div class="score-box">PUNTOS:<br><span id="scoreDisplay">0</span></div>
+  <div class="score-box">
+    <img src="enemy_hit.png" class="enemy-icon" />
+    <span id="scoreDisplay">0</span>
+  </div>
+
   <canvas id="gameCanvas" width="360" height="600"></canvas>
 
   <div class="controls">
     <button id="leftBtn">←</button>
-    <button id="fireBtn">※</button>
+    <button id="fireBtn">★</button>
     <button id="rightBtn">→</button>
   </div>
 
@@ -35,3 +40,4 @@
   <script src="script.js"></script>
 </body>
 </html>
+
