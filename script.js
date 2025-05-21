@@ -50,7 +50,8 @@ function createEnemies() {
         height: 30,
         img: enemyImage,
         dying: false,
-        flashState: 0
+        flashState: 0,
+        remove: false
       });
     }
   }
@@ -76,7 +77,7 @@ function update() {
   });
 
   bullets.forEach((b, bi) => {
-    enemies.forEach((e, ei) => {
+    enemies.forEach((e) => {
       if (!e.dying && b.x < e.x + e.width && b.x + b.width > e.x &&
           b.y < e.y + e.height && b.y + b.height > e.y) {
         e.dying = true;
@@ -84,16 +85,19 @@ function update() {
         let explode = explodeSound.cloneNode();
         explode.play();
 
-        // Parpadeo animado
+        // Parpadeo
         let flashCount = 0;
         const flashInterval = setInterval(() => {
           e.flashState = (e.flashState === 0) ? 1 : 0;
           flashCount++;
           if (flashCount >= 5) {
             clearInterval(flashInterval);
-            enemies.splice(ei, 1);
           }
         }, 100);
+
+        setTimeout(() => {
+          e.remove = true;
+        }, 500); // esperar 500ms antes de eliminar
 
         bullets.splice(bi, 1);
         score += 100;
@@ -102,7 +106,10 @@ function update() {
     });
   });
 
-  // Movimiento en zigzag con dificultad progresiva
+  // Eliminar enemigos marcados
+  enemies = enemies.filter(e => !e.remove);
+
+  // Zigzag + dificultad progresiva
   enemyMoveTimer++;
   let speedFactor = Math.max(5, 35 - enemies.length);
   if (enemyMoveTimer >= speedFactor) {
@@ -135,11 +142,7 @@ function draw() {
   });
 
   enemies.forEach(e => {
-    if (e.flashState === 1) {
-      ctx.globalAlpha = 0.5;
-    } else {
-      ctx.globalAlpha = 1.0;
-    }
+    ctx.globalAlpha = (e.flashState === 1) ? 0.5 : 1.0;
     ctx.drawImage(e.img, e.x, e.y, e.width, e.height);
     ctx.globalAlpha = 1.0;
   });
