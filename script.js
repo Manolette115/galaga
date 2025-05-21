@@ -6,13 +6,27 @@ const winScreen = document.getElementById("winScreen");
 const shootSound = document.getElementById("shootSound");
 const explodeSound = document.getElementById("explodeSound");
 
+// Enemigos
 const enemyImage = new Image();
 enemyImage.src = "enemy_idle.png";
-
 const enemyHitImage = new Image();
 enemyHitImage.src = "enemy_hit.png";
 
-let ship = { x: canvas.width / 2 - 15, y: canvas.height - 50, width: 30, height: 30, speed: 5 };
+// Jugador (robot)
+const robotIdleImg = new Image();
+robotIdleImg.src = "robot_idle.png";
+const robotShootImg = new Image();
+robotShootImg.src = "robot_shoot.png";
+
+let ship = {
+  x: canvas.width / 2 - 15,
+  y: canvas.height - 50,
+  width: 30,
+  height: 30,
+  speed: 5,
+  img: robotIdleImg
+};
+
 let bullets = [];
 let enemies = [];
 let movingLeft = false;
@@ -25,19 +39,18 @@ let enemyMoveTimer = 0;
 let enemyDirection = 1;
 
 let imagesLoaded = 0;
-enemyImage.onload = checkImagesLoaded;
-enemyHitImage.onload = checkImagesLoaded;
-
-function checkImagesLoaded() {
-  imagesLoaded++;
-  if (imagesLoaded === 2) {
-    startScreen.addEventListener("click", () => {
-      startScreen.classList.add("hide");
-      createEnemies();
-      playing = true;
-    });
-  }
-}
+[enemyImage, enemyHitImage, robotIdleImg, robotShootImg].forEach(img => {
+  img.onload = () => {
+    imagesLoaded++;
+    if (imagesLoaded === 4) {
+      startScreen.addEventListener("click", () => {
+        startScreen.classList.add("hide");
+        createEnemies();
+        playing = true;
+      });
+    }
+  };
+});
 
 function createEnemies() {
   enemies = [];
@@ -68,7 +81,12 @@ function update() {
     let sound = shootSound.cloneNode();
     sound.play();
     canFire = false;
-    setTimeout(() => canFire = true, 200);
+
+    ship.img = robotShootImg;
+    setTimeout(() => {
+      ship.img = robotIdleImg;
+      canFire = true;
+    }, 200);
   }
 
   bullets.forEach((b, i) => {
@@ -90,14 +108,12 @@ function update() {
         const flashInterval = setInterval(() => {
           e.flashState = (e.flashState === 0) ? 1 : 0;
           flashCount++;
-          if (flashCount >= 5) {
-            clearInterval(flashInterval);
-          }
+          if (flashCount >= 5) clearInterval(flashInterval);
         }, 100);
 
         setTimeout(() => {
           e.remove = true;
-        }, 500); // esperar 500ms antes de eliminar
+        }, 500);
 
         bullets.splice(bi, 1);
         score += 100;
@@ -106,7 +122,6 @@ function update() {
     });
   });
 
-  // Eliminar enemigos marcados
   enemies = enemies.filter(e => !e.remove);
 
   // Zigzag + dificultad progresiva
@@ -133,14 +148,17 @@ function update() {
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "white";
-  ctx.fillRect(ship.x, ship.y, ship.width, ship.height);
 
+  // Dibujar jugador (robot)
+  ctx.drawImage(ship.img, ship.x, ship.y, ship.width, ship.height);
+
+  // Balas
   bullets.forEach(b => {
     ctx.fillStyle = "red";
     ctx.fillRect(b.x, b.y, b.width, b.height);
   });
 
+  // Enemigos
   enemies.forEach(e => {
     ctx.globalAlpha = (e.flashState === 1) ? 0.5 : 1.0;
     ctx.drawImage(e.img, e.x, e.y, e.width, e.height);
@@ -210,3 +228,4 @@ document.addEventListener("keyup", e => {
 });
 
 gameLoop();
+
