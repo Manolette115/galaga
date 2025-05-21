@@ -52,7 +52,6 @@ canvas {
   padding: 6px 8px;
   text-align: center;
   z-index: 5;
-  width: auto;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -66,12 +65,14 @@ canvas {
 }
 
 .logo-img {
-  width: 180px;
+  width: 260px;
   image-rendering: pixelated;
+  margin-bottom: 10px;
 }
 
 .subtext {
-  font-size: 8px;
+  font-size: 12px;
+  text-transform: uppercase;
   margin: 10px 0;
 }
 
