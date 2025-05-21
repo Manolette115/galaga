@@ -6,15 +6,15 @@ const winScreen = document.getElementById("winScreen");
 const shootSound = document.getElementById("shootSound");
 const explodeSound = document.getElementById("explodeSound");
 
-// Enemigos
 const enemyImage = new Image();
 enemyImage.src = "enemy_idle.png";
+
 const enemyHitImage = new Image();
 enemyHitImage.src = "enemy_hit.png";
 
-// Jugador (robot)
 const robotIdleImg = new Image();
 robotIdleImg.src = "robot_idle.png";
+
 const robotShootImg = new Image();
 robotShootImg.src = "robot_shoot.png";
 
@@ -81,7 +81,6 @@ function update() {
     let sound = shootSound.cloneNode();
     sound.play();
     canFire = false;
-
     ship.img = robotShootImg;
     setTimeout(() => {
       ship.img = robotIdleImg;
@@ -103,7 +102,6 @@ function update() {
         let explode = explodeSound.cloneNode();
         explode.play();
 
-        // Parpadeo
         let flashCount = 0;
         const flashInterval = setInterval(() => {
           e.flashState = (e.flashState === 0) ? 1 : 0;
@@ -116,7 +114,7 @@ function update() {
         }, 500);
 
         bullets.splice(bi, 1);
-        score += 100;
+        score += 1;
         scoreDisplay.textContent = score;
       }
     });
@@ -124,7 +122,6 @@ function update() {
 
   enemies = enemies.filter(e => !e.remove);
 
-  // Zigzag + dificultad progresiva
   enemyMoveTimer++;
   let speedFactor = Math.max(5, 35 - enemies.length);
   if (enemyMoveTimer >= speedFactor) {
@@ -148,17 +145,13 @@ function update() {
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Dibujar jugador (robot)
   ctx.drawImage(ship.img, ship.x, ship.y, ship.width, ship.height);
 
-  // Balas
   bullets.forEach(b => {
     ctx.fillStyle = "red";
     ctx.fillRect(b.x, b.y, b.width, b.height);
   });
 
-  // Enemigos
   enemies.forEach(e => {
     ctx.globalAlpha = (e.flashState === 1) ? 0.5 : 1.0;
     ctx.drawImage(e.img, e.x, e.y, e.width, e.height);
@@ -207,7 +200,7 @@ function launchConfetti() {
   drawConfetti();
 }
 
-// Controles táctiles
+// Controles móviles
 document.getElementById("leftBtn").addEventListener("touchstart", e => { e.preventDefault(); movingLeft = true; });
 document.getElementById("leftBtn").addEventListener("touchend", e => { e.preventDefault(); movingLeft = false; });
 document.getElementById("rightBtn").addEventListener("touchstart", e => { e.preventDefault(); movingRight = true; });
@@ -215,7 +208,7 @@ document.getElementById("rightBtn").addEventListener("touchend", e => { e.preven
 document.getElementById("fireBtn").addEventListener("touchstart", e => { e.preventDefault(); firing = true; });
 document.getElementById("fireBtn").addEventListener("touchend", e => { e.preventDefault(); firing = false; });
 
-// Controles de teclado
+// Teclado
 document.addEventListener("keydown", e => {
   if (e.key === "ArrowLeft") movingLeft = true;
   if (e.key === "ArrowRight") movingRight = true;
@@ -228,4 +221,3 @@ document.addEventListener("keyup", e => {
 });
 
 gameLoop();
-
