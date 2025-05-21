@@ -27,7 +27,6 @@ let ship = {
   img: robotIdleImg
 };
 
-let level = 1;
 let bullets = [];
 let enemies = [];
 let movingLeft = false;
@@ -124,8 +123,7 @@ function update() {
   enemies = enemies.filter(e => !e.remove);
 
   enemyMoveTimer++;
-  let baseSpeed = level === 2 ? 2 : 1;
-  let speedFactor = Math.max(5, (5 + enemies.length) / baseSpeed);
+  let speedFactor = Math.max(5, 5 + enemies.length);
   if (enemyMoveTimer >= speedFactor) {
     let shift = 10 * enemyDirection;
     let edgeHit = enemies.some(e => e.x + shift < 0 || e.x + shift + e.width > canvas.width);
@@ -139,10 +137,6 @@ function update() {
   }
 
   if (enemies.length === 0) {
-  if (level === 1) {
-    level = 2;
-    createEnemies();
-  } else {
     playing = false;
     winScreen.style.display = "flex";
     launchConfetti();
