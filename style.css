@@ -121,3 +121,43 @@ canvas {
   margin-top: 40px;
   text-align: center;
 }
+
+@media (max-height: 600px), (max-width: 400px) {
+  .overlay h1 {
+    font-size: 14px;
+    margin: 10px 0;
+  }
+
+  .overlay p {
+    font-size: 10px;
+    margin: 5px 0;
+  }
+
+  .retro-retry {
+    font-size: 12px;
+    margin-top: 20px;
+  }
+
+  .logo-img {
+    width: 180px;
+  }
+
+  .score-box {
+    font-size: 8px;
+    padding: 4px 6px;
+  }
+
+  .controls button {
+    font-size: 10px;
+    padding: 6px;
+    width: 50px;
+  }
+
+  .overlay {
+    padding: 20px;
+  }
+
+  canvas {
+    height: 80%;
+  }
+}

@@ -17,8 +17,8 @@
   <div id="winScreen" class="overlay" style="display: none;">
     <h1>¡Felicidades!</h1>
     <p>Has completado el nivel.</p>
-    <canvas id="confettiCanvas"></canvas>
-    <p class="retro-retry blinking">REINTENTAR</p>
+    <div class="retro-retry blinking">REINTENTAR</div>
+    <canvas id="confettiCanvas" style="position: absolute; top: 0; left: 0;"></canvas>
   </div>
 
   <div class="score-box">
@@ -34,10 +34,9 @@
     <button id="rightBtn">→</button>
   </div>
 
-  <!-- Sonidos -->
   <audio id="shootSound" src="shoot.wav"></audio>
   <audio id="explodeSound" src="explode.wav"></audio>
-  <audio id="backgroundMusic" src="background_music.mp3" loop></audio>
+  <audio id="backgroundMusic" src="background_music.wav" loop></audio>
 
   <script src="script.js"></script>
 </body>
