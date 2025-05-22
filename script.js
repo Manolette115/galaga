@@ -3,6 +3,18 @@ const ctx = canvas.getContext("2d");
 const scoreDisplay = document.getElementById("scoreDisplay");
 const startScreen = document.getElementById("startScreen");
 const winScreen = document.getElementById("winScreen");
+
+// 🔴 NUEVO: pantalla de muerte
+const deathScreen = document.createElement("div");
+deathScreen.className = "overlay";
+deathScreen.innerHTML = `
+  <h1 style="color: red;">¡Has sido alcanzado!</h1>
+  <p>Un enemigo llegó hasta el robot.</p>
+  <button onclick="location.reload()">Reintentar</button>
+`;
+deathScreen.style.display = "none";
+document.body.appendChild(deathScreen);
+
 const shootSound = document.getElementById("shootSound");
 const explodeSound = document.getElementById("explodeSound");
 
@@ -19,7 +31,7 @@ const robotShootImg = new Image();
 robotShootImg.src = "robot_shoot.png";
 
 const bulletImg = new Image();
-bulletImg.src = "bullet.png"; // 👈 Placeholder para el disparo
+bulletImg.src = "bullet.png";
 
 let ship = {
   x: canvas.width / 2 - 15,
@@ -41,6 +53,7 @@ let playing = false;
 let enemyMoveTimer = 0;
 let enemyDirection = 1;
 let level = 1;
+let loopMode = 1; // 🔁 1 = bucle infinito, 0 = se detiene en el nivel 3
 
 let imagesLoaded = 0;
 [enemyImage, enemyHitImage, robotIdleImg, robotShootImg, bulletImg].forEach(img => {
@@ -131,8 +144,8 @@ function update() {
 
   enemies = enemies.filter(e => !e.remove);
 
-  // Dificultad progresiva por nivel
-  let levelMultiplier = level === 3 ? 3 : level === 2 ? 2 : 1;
+  // Dificultad creciente según nivel
+  let levelMultiplier = level;
   let speedFactor = Math.max(5, (5 + enemies.length) / levelMultiplier);
 
   enemyMoveTimer++;
@@ -148,9 +161,20 @@ function update() {
     enemyMoveTimer = 0;
   }
 
+  // 🔥 Detectar colisión enemigo con el jugador
+  enemies.forEach(e => {
+    if (!e.dying && e.y + e.height >= ship.y) {
+      playing = false;
+      deathScreen.style.display = "flex";
+    }
+  });
+
   // Control de niveles
   if (enemies.length === 0) {
-    if (level < 3) {
+    if (loopMode === 1) {
+      level++;
+      createEnemies();
+    } else if (level < 3) {
       level++;
       createEnemies();
     } else {
