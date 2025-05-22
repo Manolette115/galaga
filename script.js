@@ -48,13 +48,13 @@ let movingRight = false;
 let firing = false;
 let canFire = true;
 let score = 0;
-let totalKills = 0; // 🎯 Total de enemigos eliminados
+let totalKills = 0;
 let playing = false;
 let enemyMoveTimer = 0;
 let enemyDropTimer = 0;
 let enemyDirection = 1;
 let level = 1;
-let loopMode = 1; // 🔁 Jugar indefinidamente con dificultad creciente
+let loopMode = 1;
 
 let imagesLoaded = 0;
 [enemyImage, enemyHitImage, robotIdleImg, robotShootImg, bulletImg].forEach(img => {
@@ -74,15 +74,17 @@ function createEnemies() {
   enemies = [];
   for (let i = 0; i < 5; i++) {
     for (let j = 0; j < 6; j++) {
+      const isStrong = level >= 2 && j < level - 1; // más enemigos fuertes con cada nivel
       enemies.push({
         x: 30 + j * 50,
         y: 30 + i * 40,
-        width: 30,
-        height: 30,
+        width: isStrong ? 60 : 30,
+        height: isStrong ? 60 : 30,
         img: enemyImage,
         dying: false,
         flashState: 0,
-        remove: false
+        remove: false,
+        health: isStrong ? 2 : 1
       });
     }
   }
@@ -120,47 +122,49 @@ function update() {
     enemies.forEach((e) => {
       if (!e.dying && b.x < e.x + e.width && b.x + b.width > e.x &&
           b.y < e.y + e.height && b.y + b.height > e.y) {
-        e.dying = true;
-        e.img = enemyHitImage;
-        let explode = explodeSound.cloneNode();
-        explode.play();
+        e.health--;
 
-        let flashCount = 0;
-        const flashInterval = setInterval(() => {
-          e.flashState = (e.flashState === 0) ? 1 : 0;
-          flashCount++;
-          if (flashCount >= 5) clearInterval(flashInterval);
-        }, 100);
+        if (e.health <= 0 && !e.dying) {
+          e.dying = true;
+          e.img = enemyHitImage;
+          let explode = explodeSound.cloneNode();
+          explode.play();
 
-        setTimeout(() => {
-          e.remove = true;
-        }, 500);
+          let flashCount = 0;
+          const flashInterval = setInterval(() => {
+            e.flashState = (e.flashState === 0) ? 1 : 0;
+            flashCount++;
+            if (flashCount >= 5) clearInterval(flashInterval);
+          }, 100);
+
+          setTimeout(() => {
+            e.remove = true;
+          }, 500);
+
+          score += 1;
+          totalKills += 1;
+          scoreDisplay.textContent = score;
+
+          if (totalKills >= 250) {
+            playing = false;
+            winScreen.style.display = "flex";
+            launchConfetti();
+          }
+        }
 
         bullets.splice(bi, 1);
-        score += 1;
-        totalKills += 1;
-        scoreDisplay.textContent = score;
-
-        // 🎯 Final por kills
-        if (totalKills >= 250) {
-          playing = false;
-          winScreen.style.display = "flex";
-          launchConfetti();
-        }
       }
     });
   });
 
   enemies = enemies.filter(e => !e.remove);
 
-  // ⏬ Enemigos bajan cada X ciclos
   enemyDropTimer++;
   if (enemyDropTimer >= 60) {
-    enemies.forEach(e => e.y += 5); // bajan un poco
+    enemies.forEach(e => e.y += 5);
     enemyDropTimer = 0;
   }
 
-  // Dificultad creciente con nivel
   let levelMultiplier = level;
   let speedFactor = Math.max(3, (4 + enemies.length) / (levelMultiplier * 2));
 
@@ -177,7 +181,6 @@ function update() {
     enemyMoveTimer = 0;
   }
 
-  // 🟥 Derrota si enemigo toca al jugador
   enemies.forEach(e => {
     if (!e.dying && e.y + e.height >= ship.y) {
       playing = false;
@@ -185,7 +188,6 @@ function update() {
     }
   });
 
-  // Control de niveles si no se ha ganado
   if (enemies.length === 0 && totalKills < 250) {
     level++;
     createEnemies();
