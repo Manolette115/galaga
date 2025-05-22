@@ -72,20 +72,33 @@ let imagesLoaded = 0;
 
 function createEnemies() {
   enemies = [];
-  for (let i = 0; i < 5; i++) {
-    for (let j = 0; j < 6; j++) {
-      const isStrong = level >= 2 && j < level - 1; // más enemigos fuertes con cada nivel
+
+  const rows = 5;
+  const cols = 6;
+  const total = rows * cols;
+  const strongCount = Math.min(level, Math.floor(total * 0.2));
+  const strongIndices = new Set();
+
+  while (strongIndices.size < strongCount) {
+    strongIndices.add(Math.floor(Math.random() * total));
+  }
+
+  let index = 0;
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      const isStrong = strongIndices.has(index);
       enemies.push({
         x: 30 + j * 50,
         y: 30 + i * 40,
-        width: isStrong ? 45 : 30,
-        height: isStrong ? 45 : 30,
+        width: isStrong ? 37 : 30,
+        height: isStrong ? 37 : 30,
         img: enemyImage,
         dying: false,
         flashState: 0,
         remove: false,
         health: isStrong ? 2 : 1
       });
+      index++;
     }
   }
 }
