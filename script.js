@@ -183,7 +183,7 @@ function update() {
   if (enemies.length === 0 && totalKills < 250) {
     level++;
     createEnemies();
-    let newRate = Math.min(1.5, 1 + Math.floor(level / 2) * 0.1);
+    let newRate = Math.min(1.5, 1 + Math.floor(level / 3) * 0.1);
     backgroundMusic.playbackRate = newRate;
   }
 }
