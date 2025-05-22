@@ -161,3 +161,14 @@ canvas {
     height: 80%;
   }
 }
+.music-credit {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-family: 'Press Start 2P', cursive;
+  color: #00aaff;
+  font-size: 10px;
+  z-index: 20;
+  text-shadow: 0 0 3px #00aaff;
+}
+
