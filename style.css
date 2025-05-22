@@ -105,13 +105,21 @@ canvas {
 }
 
 .blinking {
-  animation: blink 1s steps(2, start) infinite;
+  animation: blink 1s infinite;
   text-align: center;
   margin-top: 20px;
 }
 
 @keyframes blink {
-  to {
-    visibility: hidden;
-  }
+  0% { opacity: 1; }
+  50% { opacity: 0.2; }
+  100% { opacity: 1; }
+}
+
+.retro-retry {
+  font-family: 'Press Start 2P', cursive;
+  color: #fff;
+  font-size: 16px;
+  margin-top: 40px;
+  text-align: center;
 }
