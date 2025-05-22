@@ -37,6 +37,7 @@ let score = 0;
 let playing = false;
 let enemyMoveTimer = 0;
 let enemyDirection = 1;
+let level = 1; // 👈 Nuevo: nivel actual
 
 let imagesLoaded = 0;
 [enemyImage, enemyHitImage, robotIdleImg, robotShootImg].forEach(img => {
@@ -122,8 +123,11 @@ function update() {
 
   enemies = enemies.filter(e => !e.remove);
 
+  // 👇 Enemigos más rápidos con menos cantidad, doble de velocidad en nivel 2
+  let baseSpeed = level === 2 ? 2 : 1;
+  let speedFactor = Math.max(5, (5 + enemies.length) / baseSpeed);
+
   enemyMoveTimer++;
-  let speedFactor = Math.max(5, 5 + enemies.length);
   if (enemyMoveTimer >= speedFactor) {
     let shift = 10 * enemyDirection;
     let edgeHit = enemies.some(e => e.x + shift < 0 || e.x + shift + e.width > canvas.width);
@@ -136,10 +140,16 @@ function update() {
     enemyMoveTimer = 0;
   }
 
+  // 👇 Nivel 2 o ganar
   if (enemies.length === 0) {
-    playing = false;
-    winScreen.style.display = "flex";
-    launchConfetti();
+    if (level === 1) {
+      level = 2;
+      createEnemies();
+    } else {
+      playing = false;
+      winScreen.style.display = "flex";
+      launchConfetti();
+    }
   }
 }
 
@@ -200,7 +210,7 @@ function launchConfetti() {
   drawConfetti();
 }
 
-// Controles móviles
+// Controles táctiles
 document.getElementById("leftBtn").addEventListener("touchstart", e => { e.preventDefault(); movingLeft = true; });
 document.getElementById("leftBtn").addEventListener("touchend", e => { e.preventDefault(); movingLeft = false; });
 document.getElementById("rightBtn").addEventListener("touchstart", e => { e.preventDefault(); movingRight = true; });
@@ -208,7 +218,7 @@ document.getElementById("rightBtn").addEventListener("touchend", e => { e.preven
 document.getElementById("fireBtn").addEventListener("touchstart", e => { e.preventDefault(); firing = true; });
 document.getElementById("fireBtn").addEventListener("touchend", e => { e.preventDefault(); firing = false; });
 
-// Teclado
+// Controles de teclado
 document.addEventListener("keydown", e => {
   if (e.key === "ArrowLeft") movingLeft = true;
   if (e.key === "ArrowRight") movingRight = true;
