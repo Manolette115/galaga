@@ -138,7 +138,7 @@ function update() {
           totalKills += 1;
           scoreDisplay.textContent = score;
 
-          if (totalKills >= 300) {
+          if (totalKills >= 270) {
             playing = false;
             winScreen.style.display = "flex";
             launchConfetti();
