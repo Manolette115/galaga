@@ -3,21 +3,10 @@ const ctx = canvas.getContext("2d");
 const scoreDisplay = document.getElementById("scoreDisplay");
 const startScreen = document.getElementById("startScreen");
 const winScreen = document.getElementById("winScreen");
-
-const deathScreen = document.createElement("div");
-deathScreen.className = "overlay";
-deathScreen.innerHTML = `
-  <h1 style="color: red;">¡Has sido alcanzado!</h1>
-  <p>Un enemigo llegó hasta el robot.</p>
-  <button onclick="location.reload()">Reintentar</button>
-`;
-deathScreen.style.display = "none";
-document.body.appendChild(deathScreen);
+const backgroundMusic = document.getElementById("backgroundMusic");
 
 const shootSound = document.getElementById("shootSound");
 const explodeSound = document.getElementById("explodeSound");
-const backgroundMusic = document.getElementById("backgroundMusic");
-backgroundMusic.volume = 0.3;
 
 const enemyImage = new Image();
 enemyImage.src = "enemy_idle.png";
@@ -26,10 +15,10 @@ const enemyHitImage = new Image();
 enemyHitImage.src = "enemy_hit.png";
 
 const strongEnemyImage = new Image();
-strongEnemyImage.src = "strong_enemy_placeholder.png";
+strongEnemyImage.src = "enemy_strong.png"; // Placeholder
 
 const strongEnemyHitImage = new Image();
-strongEnemyHitImage.src = "strong_enemy_hit_placeholder.png";
+strongEnemyHitImage.src = "enemy_strong_hit.png"; // Placeholder
 
 const robotIdleImg = new Image();
 robotIdleImg.src = "robot_idle.png";
@@ -64,67 +53,53 @@ let enemyDirection = 1;
 let level = 1;
 
 let imagesLoaded = 0;
-const totalImages = 7;
-
-function checkStartReady() {
-  imagesLoaded++;
-  if (imagesLoaded === totalImages) {
-    startScreen.addEventListener("click", () => {
-      startScreen.classList.add("hide");
-      createEnemies();
-      playing = true;
-
-      backgroundMusic.play();
-      backgroundMusic.playbackRate = 1;
-    });
-  }
-}
-
-[
-  enemyImage,
-  enemyHitImage,
-  strongEnemyImage,
-  strongEnemyHitImage,
-  robotIdleImg,
-  robotShootImg,
-  bulletImg
-].forEach(img => {
-  img.onload = checkStartReady;
-  img.onerror = checkStartReady;
+[enemyImage, enemyHitImage, robotIdleImg, robotShootImg, bulletImg, strongEnemyImage, strongEnemyHitImage].forEach(img => {
+  img.onload = () => {
+    imagesLoaded++;
+    if (imagesLoaded === 7) {
+      startScreen.addEventListener("click", () => {
+        startScreen.classList.add("hide");
+        createEnemies();
+        playing = true;
+        backgroundMusic.play();
+        backgroundMusic.playbackRate = 1;
+      });
+    }
+  };
 });
 
 function createEnemies() {
   enemies = [];
-  const positions = [];
+  const total = 30;
+  const strongCount = Math.min(level + 2, 10); // max 10 fuertes
 
-  for (let i = 0; i < 5; i++) {
-    for (let j = 0; j < 6; j++) {
-      const xPos = 30 + j * 50;
-      const yPos = 30 + i * 40;
-      positions.push({ x: xPos, y: yPos });
+  let positions = [];
+  while (positions.length < strongCount) {
+    let rand = Math.floor(Math.random() * total);
+    if (!positions.includes(rand)) {
+      positions.push(rand);
     }
   }
 
-  const strongEnemyCount = Math.min(level, positions.length);
-  const shuffled = positions.sort(() => Math.random() - 0.5);
-  const strongPositions = shuffled.slice(0, strongEnemyCount);
-  const strongSet = new Set(strongPositions.map(pos => `${pos.x},${pos.y}`));
-
-  positions.forEach(pos => {
-    const isStrong = strongSet.has(`${pos.x},${pos.y}`);
-    enemies.push({
-      x: pos.x,
-      y: pos.y,
-      width: isStrong ? 37 : 30,
-      height: isStrong ? 37 : 30,
-      img: isStrong ? strongEnemyImage : enemyImage,
-      dying: false,
-      flashState: 0,
-      remove: false,
-      health: isStrong ? 2 : 1,
-      hitImg: isStrong ? strongEnemyHitImage : enemyHitImage
-    });
-  });
+  let i = 0;
+  for (let row = 0; row < 5; row++) {
+    for (let col = 0; col < 6; col++) {
+      const isStrong = positions.includes(i);
+      enemies.push({
+        x: 30 + col * 50,
+        y: 30 + row * 40,
+        width: isStrong ? 45 : 30,
+        height: isStrong ? 45 : 30,
+        img: isStrong ? strongEnemyImage : enemyImage,
+        hitImg: isStrong ? strongEnemyHitImage : enemyHitImage,
+        health: isStrong ? 2 : 1,
+        dying: false,
+        flashState: 0,
+        remove: false
+      });
+      i++;
+    }
+  }
 }
 
 function update() {
@@ -161,7 +136,7 @@ function update() {
           b.y < e.y + e.height && b.y + b.height > e.y) {
         e.health--;
 
-        if (e.health <= 0 && !e.dying) {
+        if (e.health <= 0) {
           e.dying = true;
           e.img = e.hitImg;
           let explode = explodeSound.cloneNode();
@@ -178,14 +153,12 @@ function update() {
             e.remove = true;
           }, 500);
 
-          score += 1;
-          totalKills += 1;
+          score++;
+          totalKills++;
           scoreDisplay.textContent = score;
 
           if (totalKills >= 250) {
-            playing = false;
-            winScreen.style.display = "flex";
-            launchConfetti();
+            endGame("win");
           }
         }
 
@@ -202,9 +175,7 @@ function update() {
     enemyDropTimer = 0;
   }
 
-  let levelMultiplier = level;
-  let speedFactor = Math.max(3, (4 + enemies.length) / (levelMultiplier * 2));
-
+  let speedFactor = Math.max(3, (4 + enemies.length) / (level * 2));
   enemyMoveTimer++;
   if (enemyMoveTimer >= speedFactor) {
     let shift = 10 * enemyDirection;
@@ -220,20 +191,36 @@ function update() {
 
   enemies.forEach(e => {
     if (!e.dying && e.y + e.height >= ship.y) {
-      playing = false;
-      deathScreen.style.display = "flex";
+      endGame("lose");
     }
   });
 
   if (enemies.length === 0 && totalKills < 250) {
     level++;
-
-    // Música: velocidad cada 2 niveles, máximo 1.5
-    const newRate = Math.min(1.5, 1 + Math.floor((level - 1) / 2) * 0.1);
-    backgroundMusic.playbackRate = newRate;
-
     createEnemies();
+
+    // Ajustar velocidad de música cada 2 niveles, máx. 1.5x
+    if (level % 2 === 0) {
+      backgroundMusic.playbackRate = Math.min(1.5, backgroundMusic.playbackRate + 0.1);
+    }
   }
+}
+
+function endGame(result) {
+  playing = false;
+  backgroundMusic.pause();
+
+  const screen = result === "win" ? winScreen : deathScreen;
+  screen.style.display = "flex";
+
+  if (!screen.querySelector(".retry-text")) {
+    const retry = document.createElement("p");
+    retry.className = "blinking retro-retry retry-text";
+    retry.textContent = "REINTENTAR?";
+    screen.appendChild(retry);
+  }
+
+  screen.addEventListener("click", () => location.reload());
 }
 
 function draw() {
@@ -245,7 +232,7 @@ function draw() {
   });
 
   enemies.forEach(e => {
-    ctx.globalAlpha = (e.flashState === 1) ? 0.5 : 1.0;
+    ctx.globalAlpha = e.flashState === 1 ? 0.5 : 1.0;
     ctx.drawImage(e.img, e.x, e.y, e.width, e.height);
     ctx.globalAlpha = 1.0;
   });
@@ -257,40 +244,7 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-function launchConfetti() {
-  const confettiCanvas = document.getElementById("confettiCanvas");
-  confettiCanvas.width = window.innerWidth;
-  confettiCanvas.height = window.innerHeight;
-  const ctx = confettiCanvas.getContext("2d");
-
-  let confetti = Array.from({ length: 100 }, () => ({
-    x: Math.random() * confettiCanvas.width,
-    y: Math.random() * confettiCanvas.height - confettiCanvas.height,
-    r: Math.random() * 4 + 2,
-    dx: Math.random() * 2 - 1,
-    dy: Math.random() * 3 + 2,
-    color: `hsl(${Math.random() * 360}, 100%, 50%)`
-  }));
-
-  function drawConfetti() {
-    ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-    for (let c of confetti) {
-      ctx.beginPath();
-      ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
-      ctx.fillStyle = c.color;
-      ctx.fill();
-      c.x += c.dx;
-      c.y += c.dy;
-      if (c.y > confettiCanvas.height) {
-        c.y = 0;
-        c.x = Math.random() * confettiCanvas.width;
-      }
-    }
-    requestAnimationFrame(drawConfetti);
-  }
-
-  drawConfetti();
-}
+gameLoop();
 
 // Controles móviles
 document.getElementById("leftBtn").addEventListener("touchstart", e => { e.preventDefault(); movingLeft = true; });
@@ -312,4 +266,7 @@ document.addEventListener("keyup", e => {
   if (e.key === " ") firing = false;
 });
 
-gameLoop();
+const deathScreen = document.createElement("div");
+deathScreen.className = "overlay";
+deathScreen.style.display = "none";
+document.body.appendChild(deathScreen);
