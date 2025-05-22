@@ -16,6 +16,8 @@ document.body.appendChild(deathScreen);
 
 const shootSound = document.getElementById("shootSound");
 const explodeSound = document.getElementById("explodeSound");
+const backgroundMusic = document.getElementById("backgroundMusic");
+backgroundMusic.volume = 0.3;
 
 const enemyImage = new Image();
 enemyImage.src = "enemy_idle.png";
@@ -24,10 +26,10 @@ const enemyHitImage = new Image();
 enemyHitImage.src = "enemy_hit.png";
 
 const strongEnemyImage = new Image();
-strongEnemyImage.src = "strong_enemy_placeholder.png"; // Imagen de enemigo fuerte
+strongEnemyImage.src = "strong_enemy_placeholder.png";
 
 const strongEnemyHitImage = new Image();
-strongEnemyHitImage.src = "strong_enemy_hit_placeholder.png"; // Imagen de golpe enemigo fuerte
+strongEnemyHitImage.src = "strong_enemy_hit_placeholder.png";
 
 const robotIdleImg = new Image();
 robotIdleImg.src = "robot_idle.png";
@@ -62,6 +64,22 @@ let enemyDirection = 1;
 let level = 1;
 
 let imagesLoaded = 0;
+const totalImages = 7;
+
+function checkStartReady() {
+  imagesLoaded++;
+  if (imagesLoaded === totalImages) {
+    startScreen.addEventListener("click", () => {
+      startScreen.classList.add("hide");
+      createEnemies();
+      playing = true;
+
+      backgroundMusic.play();
+      backgroundMusic.playbackRate = 1;
+    });
+  }
+}
+
 [
   enemyImage,
   enemyHitImage,
@@ -71,50 +89,42 @@ let imagesLoaded = 0;
   robotShootImg,
   bulletImg
 ].forEach(img => {
-  img.onload = () => {
-    imagesLoaded++;
-    if (imagesLoaded === 7) {
-      startScreen.addEventListener("click", () => {
-        startScreen.classList.add("hide");
-        createEnemies();
-        playing = true;
-      });
-    }
-  };
+  img.onload = checkStartReady;
+  img.onerror = checkStartReady;
 });
 
 function createEnemies() {
   enemies = [];
-  const rows = 5;
-  const cols = 6;
-  const total = rows * cols;
+  const positions = [];
 
-  let positions = [];
-  for (let i = 0; i < total; i++) positions.push(i);
-  positions = positions.sort(() => Math.random() - 0.5); // Shuffle
+  for (let i = 0; i < 5; i++) {
+    for (let j = 0; j < 6; j++) {
+      const xPos = 30 + j * 50;
+      const yPos = 30 + i * 40;
+      positions.push({ x: xPos, y: yPos });
+    }
+  }
 
-  for (let i = 0; i < total; i++) {
-    const row = Math.floor(i / cols);
-    const col = i % cols;
+  const strongEnemyCount = Math.min(level, positions.length);
+  const shuffled = positions.sort(() => Math.random() - 0.5);
+  const strongPositions = shuffled.slice(0, strongEnemyCount);
+  const strongSet = new Set(strongPositions.map(pos => `${pos.x},${pos.y}`));
 
-    const index = positions[i];
-    const posX = 30 + (index % cols) * 50;
-    const posY = 30 + Math.floor(index / cols) * 40;
-
-    const isStrong = level >= 2 && i < level + 2;
-
+  positions.forEach(pos => {
+    const isStrong = strongSet.has(`${pos.x},${pos.y}`);
     enemies.push({
-      x: posX,
-      y: posY,
-      width: isStrong ? 37 : 30,
-      height: isStrong ? 37 : 30,
+      x: pos.x,
+      y: pos.y,
+      width: isStrong ? 45 : 30,
+      height: isStrong ? 45 : 30,
       img: isStrong ? strongEnemyImage : enemyImage,
       dying: false,
       flashState: 0,
       remove: false,
-      health: isStrong ? 2 : 1
+      health: isStrong ? 2 : 1,
+      hitImg: isStrong ? strongEnemyHitImage : enemyHitImage
     });
-  }
+  });
 }
 
 function update() {
@@ -146,15 +156,14 @@ function update() {
   });
 
   bullets.forEach((b, bi) => {
-    enemies.forEach(e => {
+    enemies.forEach((e) => {
       if (!e.dying && b.x < e.x + e.width && b.x + b.width > e.x &&
           b.y < e.y + e.height && b.y + b.height > e.y) {
         e.health--;
 
         if (e.health <= 0 && !e.dying) {
           e.dying = true;
-          e.img = e.width > 30 ? strongEnemyHitImage : enemyHitImage;
-
+          e.img = e.hitImg;
           let explode = explodeSound.cloneNode();
           explode.play();
 
@@ -193,7 +202,9 @@ function update() {
     enemyDropTimer = 0;
   }
 
-  let speedFactor = Math.max(3, (4 + enemies.length) / (level * 2));
+  let levelMultiplier = level;
+  let speedFactor = Math.max(3, (4 + enemies.length) / (levelMultiplier * 2));
+
   enemyMoveTimer++;
   if (enemyMoveTimer >= speedFactor) {
     let shift = 10 * enemyDirection;
@@ -216,6 +227,11 @@ function update() {
 
   if (enemies.length === 0 && totalKills < 250) {
     level++;
+
+    // Música: velocidad cada 2 niveles, máximo 1.5
+    const newRate = Math.min(1.5, 1 + Math.floor((level - 1) / 2) * 0.1);
+    backgroundMusic.playbackRate = newRate;
+
     createEnemies();
   }
 }
