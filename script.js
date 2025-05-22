@@ -15,10 +15,10 @@ const enemyHitImage = new Image();
 enemyHitImage.src = "enemy_hit.png";
 
 const strongEnemyImage = new Image();
-strongEnemyImage.src = "enemy_strong.png";
+strongEnemyImage.src = "enemy_strong.png"; // imagen placeholder
 
 const strongEnemyHitImage = new Image();
-strongEnemyHitImage.src = "enemy_strong_hit.png";
+strongEnemyHitImage.src = "enemy_strong_hit.png"; // imagen placeholder
 
 const robotIdleImg = new Image();
 robotIdleImg.src = "robot_idle.png";
@@ -52,55 +52,32 @@ let enemyDropTimer = 0;
 let enemyDirection = 1;
 let level = 1;
 
-let imagesLoaded = 0;
-[
-  enemyImage, enemyHitImage, strongEnemyImage, strongEnemyHitImage,
-  robotIdleImg, robotShootImg, bulletImg
-].forEach(img => {
-  img.onload = () => {
-    imagesLoaded++;
-    if (imagesLoaded === 7) {
-      startScreen.addEventListener("click", () => {
-        startScreen.classList.add("hide");
-        createEnemies();
-        backgroundMusic.play();
-        backgroundMusic.playbackRate = 1;
-        playing = true;
-      });
-    }
-  };
-});
-
 function createEnemies() {
   enemies = [];
+  const positions = [];
 
-  const strongSize = 60;
-  const normalSize = 30;
-  const paddingX = 10;
-  const paddingY = 10;
-  const columns = 6;
-  const rows = 5;
+  for (let i = 0; i < 5; i++) {
+    for (let j = 0; j < 6; j++) {
+      const isStrong = level >= 2 && Math.random() < 0.25;
+      let x = 30 + j * 50;
+      let y = 30 + i * 40;
 
-  for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < columns; j++) {
-      const isStrong = level >= 2 && Math.random() < 0.3;
-      const width = isStrong ? strongSize : normalSize;
-      const height = isStrong ? strongSize : normalSize;
-      const x = 20 + j * (strongSize + paddingX);
-      const y = 30 + i * (strongSize + paddingY);
+      if (isStrong) {
+        x += Math.random() * 10 - 5;
+        y += Math.random() * 10 - 5;
+      }
 
       enemies.push({
         x,
         y,
-        width,
-        height,
+        width: isStrong ? 35 : 30,
+        height: isStrong ? 35 : 30,
         img: isStrong ? strongEnemyImage : enemyImage,
-        hitImage: isStrong ? strongEnemyHitImage : enemyHitImage,
+        hitImg: isStrong ? strongEnemyHitImage : enemyHitImage,
         dying: false,
         flashState: 0,
         remove: false,
-        health: isStrong ? 2 : 1,
-        isStrong
+        health: isStrong ? 2 : 1
       });
     }
   }
@@ -119,7 +96,8 @@ function update() {
       width: 10,
       height: 10
     });
-    shootSound.cloneNode().play();
+    let sound = shootSound.cloneNode();
+    sound.play();
     canFire = false;
     ship.img = robotShootImg;
     setTimeout(() => {
@@ -141,8 +119,9 @@ function update() {
 
         if (e.health <= 0 && !e.dying) {
           e.dying = true;
-          e.img = e.hitImage;
-          explodeSound.cloneNode().play();
+          e.img = e.hitImg;
+          let explode = explodeSound.cloneNode();
+          explode.play();
 
           let flashCount = 0;
           const flashInterval = setInterval(() => {
@@ -155,25 +134,14 @@ function update() {
             e.remove = true;
           }, 500);
 
-          score++;
-          totalKills++;
+          score += 1;
+          totalKills += 1;
           scoreDisplay.textContent = score;
 
-          if (totalKills >= 250) {
+          if (totalKills >= 60) {
             playing = false;
-            backgroundMusic.pause();
             winScreen.style.display = "flex";
-
-            // Mostrar "REINTENTAR"
-            winScreen.innerHTML = `
-              <h1>¡Felicidades!</h1>
-              <p>Has completado el nivel.</p>
-              <p class="retro-retry blinking">REINTENTAR</p>
-              <canvas id="confettiCanvas"></canvas>
-            `;
             launchConfetti();
-
-            winScreen.addEventListener("click", () => location.reload());
           }
         }
 
@@ -191,6 +159,7 @@ function update() {
   }
 
   let speedFactor = Math.max(3, (4 + enemies.length) / (level * 2));
+
   enemyMoveTimer++;
   if (enemyMoveTimer >= speedFactor) {
     let shift = 10 * enemyDirection;
@@ -207,21 +176,15 @@ function update() {
   enemies.forEach(e => {
     if (!e.dying && e.y + e.height >= ship.y) {
       playing = false;
-      backgroundMusic.pause();
-      winScreen.style.display = "flex";
-      winScreen.innerHTML = `
-        <h1>¡Has sido alcanzado!</h1>
-        <p>Un enemigo llegó al robot.</p>
-        <p class="retro-retry blinking">REINTENTAR</p>
-      `;
-      winScreen.addEventListener("click", () => location.reload());
+      showRetryScreen();
     }
   });
 
   if (enemies.length === 0 && totalKills < 250) {
     level++;
-    backgroundMusic.playbackRate = Math.min(1.5, 1 + Math.floor(level / 2) * 0.1);
     createEnemies();
+    let newRate = Math.min(1.5, 1 + Math.floor(level / 2) * 0.1);
+    backgroundMusic.playbackRate = newRate;
   }
 }
 
@@ -281,7 +244,10 @@ function launchConfetti() {
   drawConfetti();
 }
 
-// Controles móviles
+function showRetryScreen() {
+  winScreen.style.display = "flex";
+}
+
 document.getElementById("leftBtn").addEventListener("touchstart", e => { e.preventDefault(); movingLeft = true; });
 document.getElementById("leftBtn").addEventListener("touchend", e => { e.preventDefault(); movingLeft = false; });
 document.getElementById("rightBtn").addEventListener("touchstart", e => { e.preventDefault(); movingRight = true; });
@@ -289,7 +255,6 @@ document.getElementById("rightBtn").addEventListener("touchend", e => { e.preven
 document.getElementById("fireBtn").addEventListener("touchstart", e => { e.preventDefault(); firing = true; });
 document.getElementById("fireBtn").addEventListener("touchend", e => { e.preventDefault(); firing = false; });
 
-// Teclado
 document.addEventListener("keydown", e => {
   if (e.key === "ArrowLeft") movingLeft = true;
   if (e.key === "ArrowRight") movingRight = true;
@@ -299,6 +264,17 @@ document.addEventListener("keyup", e => {
   if (e.key === "ArrowLeft") movingLeft = false;
   if (e.key === "ArrowRight") movingRight = false;
   if (e.key === " ") firing = false;
+});
+
+startScreen.addEventListener("click", () => {
+  startScreen.classList.add("hide");
+  createEnemies();
+  playing = true;
+  backgroundMusic.play();
+});
+
+winScreen.addEventListener("click", () => {
+  location.reload();
 });
 
 gameLoop();

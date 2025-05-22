@@ -106,8 +106,6 @@ canvas {
 
 .blinking {
   animation: blink 1s infinite;
-  text-align: center;
-  margin-top: 20px;
 }
 
 @keyframes blink {
