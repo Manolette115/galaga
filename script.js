@@ -4,7 +4,6 @@ const scoreDisplay = document.getElementById("scoreDisplay");
 const startScreen = document.getElementById("startScreen");
 const winScreen = document.getElementById("winScreen");
 
-// 🔴 NUEVO: pantalla de muerte
 const deathScreen = document.createElement("div");
 deathScreen.className = "overlay";
 deathScreen.innerHTML = `
@@ -49,11 +48,13 @@ let movingRight = false;
 let firing = false;
 let canFire = true;
 let score = 0;
+let totalKills = 0; // 🎯 Total de enemigos eliminados
 let playing = false;
 let enemyMoveTimer = 0;
+let enemyDropTimer = 0;
 let enemyDirection = 1;
 let level = 1;
-let loopMode = 1; // 🔁 1 = bucle infinito, 0 = se detiene en el nivel 3
+let loopMode = 1; // 🔁 Jugar indefinidamente con dificultad creciente
 
 let imagesLoaded = 0;
 [enemyImage, enemyHitImage, robotIdleImg, robotShootImg, bulletImg].forEach(img => {
@@ -137,16 +138,31 @@ function update() {
 
         bullets.splice(bi, 1);
         score += 1;
+        totalKills += 1;
         scoreDisplay.textContent = score;
+
+        // 🎯 Final por kills
+        if (totalKills >= 250) {
+          playing = false;
+          winScreen.style.display = "flex";
+          launchConfetti();
+        }
       }
     });
   });
 
   enemies = enemies.filter(e => !e.remove);
 
-  // Dificultad creciente según nivel
+  // ⏬ Enemigos bajan cada X ciclos
+  enemyDropTimer++;
+  if (enemyDropTimer >= 60) {
+    enemies.forEach(e => e.y += 5); // bajan un poco
+    enemyDropTimer = 0;
+  }
+
+  // Dificultad creciente con nivel
   let levelMultiplier = level;
-  let speedFactor = Math.max(2, (4 + enemies.length) / (levelMultiplier * 2));
+  let speedFactor = Math.max(3, (4 + enemies.length) / (levelMultiplier * 2));
 
   enemyMoveTimer++;
   if (enemyMoveTimer >= speedFactor) {
@@ -161,7 +177,7 @@ function update() {
     enemyMoveTimer = 0;
   }
 
-  // 🔥 Detectar colisión enemigo con el jugador
+  // 🟥 Derrota si enemigo toca al jugador
   enemies.forEach(e => {
     if (!e.dying && e.y + e.height >= ship.y) {
       playing = false;
@@ -169,19 +185,10 @@ function update() {
     }
   });
 
-  // Control de niveles
-  if (enemies.length === 0) {
-    if (loopMode === 1) {
-      level++;
-      createEnemies();
-    } else if (level < 3) {
-      level++;
-      createEnemies();
-    } else {
-      playing = false;
-      winScreen.style.display = "flex";
-      launchConfetti();
-    }
+  // Control de niveles si no se ha ganado
+  if (enemies.length === 0 && totalKills < 250) {
+    level++;
+    createEnemies();
   }
 }
 
@@ -249,7 +256,7 @@ document.getElementById("rightBtn").addEventListener("touchend", e => { e.preven
 document.getElementById("fireBtn").addEventListener("touchstart", e => { e.preventDefault(); firing = true; });
 document.getElementById("fireBtn").addEventListener("touchend", e => { e.preventDefault(); firing = false; });
 
-// Controles de teclado
+// Teclado
 document.addEventListener("keydown", e => {
   if (e.key === "ArrowLeft") movingLeft = true;
   if (e.key === "ArrowRight") movingRight = true;
