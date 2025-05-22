@@ -146,7 +146,7 @@ function update() {
 
   // Dificultad creciente según nivel
   let levelMultiplier = level;
-  let speedFactor = Math.max(5, (5 + enemies.length) / levelMultiplier);
+  let speedFactor = Math.max(2, (4 + enemies.length) / (levelMultiplier * 2));
 
   enemyMoveTimer++;
   if (enemyMoveTimer >= speedFactor) {
