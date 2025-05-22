@@ -164,7 +164,7 @@ canvas {
 .music-credit {
   position: absolute;
   top: 20px;       /* Más separado del borde superior */
-  left: 20px;      /* Más separado del borde izquierdo */
+  left: 40px;      /* Más separado del borde izquierdo */
   font-family: 'Press Start 2P', cursive;
   color: white;    /* Cambiado a blanco */
   font-size: 10px;
