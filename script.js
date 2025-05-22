@@ -106,8 +106,8 @@ function createEnemies() {
     enemies.push({
       x: posX,
       y: posY,
-      width: isStrong ? 45 : 30,
-      height: isStrong ? 45 : 30,
+      width: isStrong ? 37 : 30,
+      height: isStrong ? 37 : 30,
       img: isStrong ? strongEnemyImage : enemyImage,
       dying: false,
       flashState: 0,
