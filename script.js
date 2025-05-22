@@ -18,6 +18,9 @@ robotIdleImg.src = "robot_idle.png";
 const robotShootImg = new Image();
 robotShootImg.src = "robot_shoot.png";
 
+const bulletImg = new Image();
+bulletImg.src = "bullet.png"; // 👈 Placeholder para el disparo
+
 let ship = {
   x: canvas.width / 2 - 15,
   y: canvas.height - 50,
@@ -37,13 +40,13 @@ let score = 0;
 let playing = false;
 let enemyMoveTimer = 0;
 let enemyDirection = 1;
-let level = 1; // 👈 Nuevo: nivel actual
+let level = 1;
 
 let imagesLoaded = 0;
-[enemyImage, enemyHitImage, robotIdleImg, robotShootImg].forEach(img => {
+[enemyImage, enemyHitImage, robotIdleImg, robotShootImg, bulletImg].forEach(img => {
   img.onload = () => {
     imagesLoaded++;
-    if (imagesLoaded === 4) {
+    if (imagesLoaded === 5) {
       startScreen.addEventListener("click", () => {
         startScreen.classList.add("hide");
         createEnemies();
@@ -78,7 +81,12 @@ function update() {
   if (movingRight && ship.x + ship.width < canvas.width) ship.x += ship.speed;
 
   if (firing && canFire) {
-    bullets.push({ x: ship.x + ship.width / 2 - 2, y: ship.y, width: 4, height: 10 });
+    bullets.push({
+      x: ship.x + ship.width / 2 - 5,
+      y: ship.y,
+      width: 10,
+      height: 10
+    });
     let sound = shootSound.cloneNode();
     sound.play();
     canFire = false;
@@ -123,9 +131,9 @@ function update() {
 
   enemies = enemies.filter(e => !e.remove);
 
-  // 👇 Enemigos más rápidos con menos cantidad, doble de velocidad en nivel 2
-  let baseSpeed = level === 2 ? 2 : 1;
-  let speedFactor = Math.max(5, (5 + enemies.length) / baseSpeed);
+  // Dificultad progresiva por nivel
+  let levelMultiplier = level === 3 ? 3 : level === 2 ? 2 : 1;
+  let speedFactor = Math.max(5, (5 + enemies.length) / levelMultiplier);
 
   enemyMoveTimer++;
   if (enemyMoveTimer >= speedFactor) {
@@ -140,10 +148,10 @@ function update() {
     enemyMoveTimer = 0;
   }
 
-  // 👇 Nivel 2 o ganar
+  // Control de niveles
   if (enemies.length === 0) {
-    if (level === 1) {
-      level = 2;
+    if (level < 3) {
+      level++;
       createEnemies();
     } else {
       playing = false;
@@ -158,8 +166,7 @@ function draw() {
   ctx.drawImage(ship.img, ship.x, ship.y, ship.width, ship.height);
 
   bullets.forEach(b => {
-    ctx.fillStyle = "red";
-    ctx.fillRect(b.x, b.y, b.width, b.height);
+    ctx.drawImage(bulletImg, b.x, b.y, b.width, b.height);
   });
 
   enemies.forEach(e => {
@@ -210,7 +217,7 @@ function launchConfetti() {
   drawConfetti();
 }
 
-// Controles táctiles
+// Controles móviles
 document.getElementById("leftBtn").addEventListener("touchstart", e => { e.preventDefault(); movingLeft = true; });
 document.getElementById("leftBtn").addEventListener("touchend", e => { e.preventDefault(); movingLeft = false; });
 document.getElementById("rightBtn").addEventListener("touchstart", e => { e.preventDefault(); movingRight = true; });
